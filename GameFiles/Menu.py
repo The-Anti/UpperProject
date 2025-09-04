@@ -15,7 +15,7 @@ clock = pygame.time.Clock()
 
 
 #menu circle thing
-#------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------
 count = 0
 
 playPosX = -150
@@ -44,24 +44,17 @@ tintRect = tint.get_rect(center=(W/2,H/2))
 
 tintScreen = False
 
+#Background
+#------------------------------------------------------------------------------------------------------
+background = pygame.image.load('Background.jpg').convert_alpha()
+backgroundRect = background.get_rect(center = (W/2,H/2))
+#------------------------------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------------------
 
-
-while True:
-    for event in pygame.event.get():    #Event system
-        if event.type == pygame.QUIT:   #If you leave the game, close the game
-            pygame.quit()
-            exit()
-    screen.fill((0,0,0))
-
-    image = pygame.transform.scale_by(playButtonImage,imageSize)
-    rotatedImage = pygame.transform.rotate(image,rotation)
-    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))
-    screen.blit(rotatedImage, imageRect)
-    screen.blit(tint, tintRect)
-    tint.set_alpha(opacity)
-
+#Starting Animation
+#------------------------------------------------------------------------------------------------------
+def startAnim():
+    global animEnd, imageSize, sizeTrip, tintScreen, opacity, flagBounce, flagFinal, rotation, playPosX, playPosY, count
     if animEnd == False:
         if imageSize >= 1.7:
             sizeTrip = True
@@ -101,10 +94,55 @@ while True:
         if flagBounce == True and playPosX == W/2:      #Settings for center
             flagFinal = True
             count = 0
-            rotation = 0
+            rotation = 44
             imageSize = 1
-            tintScreen = False
-            
+            animEnd = True
+            opacity = 255
+    else:
+        return
+#------------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------------
+
+
+while True:
+    mousepos = pygame.mouse.get_pos()
+    for event in pygame.event.get():    #Event system
+        if event.type == pygame.QUIT:   #If you leave the game, close the game
+            pygame.quit()
+            exit()
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:    #When you click, things below happen.
+            #ALL CLICK DETECTION WILL GO HERE
+            #-------------------------------------------------------------------------------
+            if animEnd == True:
+                if imageRect.collidepoint(mousepos):
+                    print('clicked')
+            #-------------------------------------------------------------------------------
+    screen.fill((0,0,0))
+
+    image = pygame.transform.scale_by(playButtonImage,imageSize)
+    rotatedImage = pygame.transform.rotate(image,rotation)
+    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))
+    if animEnd == False:
+        screen.blit(rotatedImage, imageRect)
+        screen.blit(tint, tintRect)
+        tint.set_alpha(opacity)
+        startAnim()
+
+    
+    
+    else:
+        screen.blit(background, backgroundRect)
+        screen.blit(rotatedImage, imageRect)
+        rotation += 1
+        if rotation >=360:
+            rotation = 0
+        screen.blit(tint, tintRect)
+        tint.set_alpha(opacity)
+        if opacity > 0:
+            opacity -= 20
+        else:
+            opactiy = 0
 
 
 
