@@ -8,7 +8,7 @@ H = 800
 pygame.init()
 
 screen = pygame.display.set_mode((W, H))
-pygame.display.set_caption('Ripoff Osu')
+pygame.display.set_caption('Rhythmania')
 clock = pygame.time.Clock()
 
 
@@ -56,43 +56,43 @@ backgroundRect = background.get_rect(center = (W/2,H/2))
 def startAnim():
     global animEnd, imageSize, sizeTrip, tintScreen, opacity, flagBounce, flagFinal, rotation, playPosX, playPosY, count
     if animEnd == False:
-        if imageSize >= 1.7:
+        if imageSize >= 1.7:    #If the size of the disk is too big then trigger the flag that forces it to go smaller.
             sizeTrip = True
 
-        if sizeTrip and imageSize <= 1:
+        if sizeTrip and imageSize <= 1:     #Uses the flag from above to set the size to normal.
             imageSize = 1
 
-        if tintScreen:
+        if tintScreen:          #Tints the screen white when the flag is activated
             opacity += 5
-        else:
+        else:                   #When flag is not active, no tinting.
             opacity = 0
 
         if flagBounce == False and flagFinal == False:  #Moving from off screen to overshoot
-            rotation -= (1/2 * count)**2 + (1/4 * count)
-            playPosX += count**2
-            count += 0.2
+            rotation -= (1/2 * count)**2 + (1/4 * count)    #Rotating clockwise following a quadratic graph
+            playPosX += count**2    #Moves the disk right
+            count += 0.2        
             imageSize += 0.015
-        elif flagFinal == False:    #Moving from overshoot to center
+        elif flagFinal == False:    #Moving from overshoot to centre
             count += 0.1
-            playPosX -= count**3
+            playPosX -= count**3        #Moving disk left
             rotation += count
-            if sizeTrip == False:
+            if sizeTrip == False:       #If the disk is not big enough, increase size. Else start to shrink it quadratically.
                 imageSize += 0.02
             else:
                 imageSize -= (1/6 * count)**2
-            if playPosX <= W/2:
+            if playPosX <= W/2:         #If the disk is to the left of the centre, blit it in the centre.
                 playPosX = W/2
 
         if playPosX >= W/2 and flagBounce == False:     #Settings for center to overshoot
-            count -= 4
+            count -= 4                                      #Rotate the disk clockwise a little faster and tint screen
             rotation -= (1/2 * count)**2 + (1/3 * count)
             tintScreen = True
-        if playPosX >= W/2 + 150 and flagBounce == False:      #Settings overshoot to center
-            flagBounce = True
+        if playPosX >= W/2 + 150 and flagBounce == False:      #Settings overshoot to centre
+            flagBounce = True                                  #Trigger the bounce flag for lower if statement
             count = 0
             imageSize += 0.02
-        if flagBounce == True and playPosX == W/2:      #Settings for center
-            flagFinal = True
+        if flagBounce == True and playPosX == W/2:      #Settings for when the disk is in the centre
+            flagFinal = True                            #Flag to say the animation has finished
             count = 0
             rotation = 44
             imageSize = 1
@@ -114,32 +114,35 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:    #When you click, things below happen.
             #ALL CLICK DETECTION WILL GO HERE
             #-------------------------------------------------------------------------------
-            if animEnd == True:
+            if animEnd == True:         #If the animation has played, the disk is clickable
                 if imageRect.collidepoint(mousepos):
                     print('clicked')
             #-------------------------------------------------------------------------------
     screen.fill((0,0,0))
 
-    image = pygame.transform.scale_by(playButtonImage,imageSize)
-    rotatedImage = pygame.transform.rotate(image,rotation)
-    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))
+    #Setting up the disk
+    image = pygame.transform.scale_by(playButtonImage,imageSize)        #Image itself
+    rotatedImage = pygame.transform.rotate(image,rotation)              #Allowing image to be rotated
+    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))    #Getting position of the image
+
+    #Playing the animation
     if animEnd == False:
         screen.blit(rotatedImage, imageRect)
         screen.blit(tint, tintRect)
         tint.set_alpha(opacity)
         startAnim()
-
+    #this heiarchy makes sure that the tint is always over the disk image and that the animation doesn't break.
     
-    
+    #AFTER THE ANIMATION PLAYED
     else:
         screen.blit(background, backgroundRect)
-        screen.blit(rotatedImage, imageRect)
-        rotation += 1
-        if rotation >=360:
+        screen.blit(rotatedImage, imageRect)        #Blits disk over the background
+        rotation += 1       #Spins the disk counter-clockwise
+        if rotation >=360:  #Just keeping the rotation variable between 0 and 360
             rotation = 0
-        screen.blit(tint, tintRect)
+        screen.blit(tint, tintRect)     #Tint over the whole screen
         tint.set_alpha(opacity)
-        if opacity > 0:
+        if opacity > 0:             #Decreases tint until its at 0
             opacity -= 20
         else:
             opactiy = 0
