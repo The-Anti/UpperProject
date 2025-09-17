@@ -102,8 +102,16 @@ def startAnim():
         return
 #------------------------------------------------------------------------------------------------------
 
+#Tab stuff
 #------------------------------------------------------------------------------------------------------
+tWidth = 300
+tHeight = 120
 
+sPosX = playPosX - 130
+sPosY = playPosY - 100
+#------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------
+clicked = False
 
 while True:
     mousepos = pygame.mouse.get_pos()
@@ -116,7 +124,11 @@ while True:
             #-------------------------------------------------------------------------------
             if animEnd == True:         #If the animation has played, the disk is clickable
                 if imageRect.collidepoint(mousepos):
-                    print('clicked')
+                    imageSize = 1.5
+                    if clicked == True:
+                        clicked = False
+                    else:
+                        clicked = True
             #-------------------------------------------------------------------------------
     screen.fill((0,0,0))
 
@@ -135,6 +147,12 @@ while True:
     
     #AFTER THE ANIMATION PLAYED
     else:
+        sPosX = playPosX - 130
+        sPosY = playPosY - 100
+        settingsTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
+        settingsTabRect =settingsTab.get_rect(topleft = (sPosX, sPosY))
+
+
         screen.blit(background, backgroundRect)
         screen.blit(rotatedImage, imageRect)        #Blits disk over the background
         rotation += 1       #Spins the disk counter-clockwise
@@ -147,7 +165,33 @@ while True:
         else:
             opactiy = 0
 
+        if clicked:
+            pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
+            screen.blit(rotatedImage, imageRect)        #Blits disk over the background
+            if imageSize < 1.2:
+                imageSize = 1.2
+            if tWidth < 700:
+                tWidth += 5
+            if playPosX > 450:
+                playPosX -= (math.sqrt(playPosX - 450))
+                imageSize -= 0.01
+            else:
+                playPosX = 450
+                imageSize = 1.2
 
+        else:
+            if imageSize < 1:
+                imageSize = 1
+            if playPosX < 700:
+                playPosX += (math.sqrt(700- playPosX))
+                imageSize -= 0.02
+            if tWidth > 300:
+                tWidth -= 5
+            else:
+                screen.blit(background, backgroundRect)
+                screen.blit(rotatedImage, imageRect)
+                playPosX = 700
+                imageSize = 1
 
     pygame.display.flip()
     clock.tick(60)
