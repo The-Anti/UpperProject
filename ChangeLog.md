@@ -11,3 +11,6 @@ I changed the way the disk rolls in and added a flash effect.
 
 04-09-2025
 Added background, made disk spin in the middle of the screen and made it clickable
+
+17-09-2025
+Made the disk clickable, moving it to the left. Started work on the main menu functionality
