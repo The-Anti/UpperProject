@@ -14,3 +14,6 @@ Added background, made disk spin in the middle of the screen and made it clickab
 
 17-09-2025
 Made the disk clickable, moving it to the left. Started work on the main menu functionality
+
+20-09-2025
+White tint now fades after starting animation has played. Purple play button moves out smoother when disk is pressed and has been readjusted.
