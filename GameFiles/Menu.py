@@ -63,7 +63,7 @@ def startAnim():
             imageSize = 1
 
         if tintScreen:          #Tints the screen white when the flag is activated
-            opacity += 5
+            opacity += 7
         else:                   #When flag is not active, no tinting.
             opacity = 0
 
@@ -96,20 +96,19 @@ def startAnim():
             count = 0
             rotation = 44
             imageSize = 1
-            animEnd = True
             opacity = 255
+            animEnd = True
     else:
         return
 #------------------------------------------------------------------------------------------------------
 
 #Tab stuff
 #------------------------------------------------------------------------------------------------------
-tWidth = 300
-tHeight = 120
+tWidth = 220
+tHeight = 100
 
-sPosX = playPosX - 130
-sPosY = playPosY - 100
-#------------------------------------------------------------------------------------------------------
+sPosX = 575
+sPosY = 260
 #------------------------------------------------------------------------------------------------------
 clicked = False
 
@@ -147,31 +146,28 @@ while True:
     
     #AFTER THE ANIMATION PLAYED
     else:
-        sPosX = playPosX - 130
-        sPosY = playPosY - 100
         settingsTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
         settingsTabRect =settingsTab.get_rect(topleft = (sPosX, sPosY))
 
 
         screen.blit(background, backgroundRect)
-        screen.blit(rotatedImage, imageRect)        #Blits disk over the background
         rotation += 1       #Spins the disk counter-clockwise
+        opacity -= 10
         if rotation >=360:  #Just keeping the rotation variable between 0 and 360
             rotation = 0
-        screen.blit(tint, tintRect)     #Tint over the whole screen
-        tint.set_alpha(opacity)
-        if opacity > 0:             #Decreases tint until its at 0
-            opacity -= 20
-        else:
-            opactiy = 0
+        if opacity <= 0:
+            opacity = 0
 
+
+        pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
+        screen.blit(rotatedImage, imageRect)        #Blits disk over the background
         if clicked:
-            pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
-            screen.blit(rotatedImage, imageRect)        #Blits disk over the background
+            if sPosX > 500:
+                sPosX -= 5
             if imageSize < 1.2:
                 imageSize = 1.2
-            if tWidth < 700:
-                tWidth += 5
+            if tWidth < 600:
+                tWidth += (math.sqrt(600 - tWidth)) * 1.3
             if playPosX > 450:
                 playPosX -= (math.sqrt(playPosX - 450))
                 imageSize -= 0.01
@@ -180,18 +176,21 @@ while True:
                 imageSize = 1.2
 
         else:
+            if sPosX < 600:
+                sPosX += 5
             if imageSize < 1:
                 imageSize = 1
+            if tWidth > 180:
+                tWidth -= (math.sqrt(tWidth - 180)) * 1.5
             if playPosX < 700:
                 playPosX += (math.sqrt(700- playPosX))
-                imageSize -= 0.02
-            if tWidth > 300:
-                tWidth -= 5
+                imageSize -= 0.017
             else:
                 screen.blit(background, backgroundRect)
                 screen.blit(rotatedImage, imageRect)
                 playPosX = 700
                 imageSize = 1
-
+        screen.blit(tint, tintRect)
+        tint.set_alpha(opacity)
     pygame.display.flip()
     clock.tick(60)
