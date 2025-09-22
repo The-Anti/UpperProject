@@ -12,6 +12,16 @@ pygame.display.set_caption('Rhythmania')
 clock = pygame.time.Clock()
 
 
+#Text stuff
+#------------------------------------------------------------------------------------------------------
+pygame.font.init()
+
+text = pygame.font.Font('bedstead-002.002/bedstead.otf', 40)
+text_settings = text.render('Settings', True, (0,0,0))
+text_play = text.render('Play', True, (0,0,0))
+#------------------------------------------------------------------------------------------------------
+
+
 
 
 #menu circle thing
@@ -105,10 +115,13 @@ def startAnim():
 #Tab stuff
 #------------------------------------------------------------------------------------------------------
 tWidth = 220
-tHeight = 100
+tHeight = 90
 
 sPosX = 575
 sPosY = 260
+
+pPosX = 625
+pPosY = 360
 #------------------------------------------------------------------------------------------------------
 clicked = False
 
@@ -148,7 +161,11 @@ while True:
     else:
         settingsTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
         settingsTabRect =settingsTab.get_rect(topleft = (sPosX, sPosY))
+        text_settings_rect = text_settings.get_rect(center = settingsTabRect.center)
 
+        playTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
+        playTabRect = playTab.get_rect(topleft = (pPosX, pPosY))
+        text_play_rect = text_play.get_rect(center = playTabRect.center)
 
         screen.blit(background, backgroundRect)
         rotation += 1       #Spins the disk counter-clockwise
@@ -160,10 +177,15 @@ while True:
 
 
         pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
+        pygame.draw.rect(screen, (0,204,0),playTabRect, border_radius=100)
+        screen.blit(text_settings,text_settings_rect)
+        screen.blit(text_play, text_play_rect)
         screen.blit(rotatedImage, imageRect)        #Blits disk over the background
         if clicked:
-            if sPosX > 500:
+            if sPosX > 500:     
                 sPosX -= 5
+            if pPosX > 550:
+                pPosX -= 5
             if imageSize < 1.2:
                 imageSize = 1.2
             if tWidth < 600:
@@ -178,6 +200,8 @@ while True:
         else:
             if sPosX < 600:
                 sPosX += 5
+            if pPosX < 650:
+                pPosX += 5
             if imageSize < 1:
                 imageSize = 1
             if tWidth > 180:
