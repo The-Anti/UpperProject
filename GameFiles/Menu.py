@@ -1,6 +1,6 @@
 import pygame, math
 from sys import exit
-import threading
+import settingsTab
 
 W = 1400
 H = 800
@@ -19,6 +19,7 @@ pygame.font.init()
 text = pygame.font.Font('bedstead-002.002/bedstead.otf', 40)
 text_settings = text.render('Settings', True, (0,0,0))
 text_play = text.render('Play', True, (0,0,0))
+text_chart = text.render('Editor', True, (0,0,0))
 #------------------------------------------------------------------------------------------------------
 
 
@@ -105,7 +106,7 @@ def startAnim():
             flagFinal = True                            #Flag to say the animation has finished
             count = 0
             rotation = 44
-            imageSize = 1
+            imageSize = 1.2
             opacity = 255
             animEnd = True
     else:
@@ -122,11 +123,24 @@ sPosY = 260
 
 pPosX = 625
 pPosY = 360
+
+cPosY = 460
 #------------------------------------------------------------------------------------------------------
 clicked = False
 
 while True:
     mousepos = pygame.mouse.get_pos()
+    mouseX,mouseY = mousepos
+
+    #Setting up the disk
+    image = pygame.transform.scale_by(playButtonImage,imageSize)        #Image itself
+    rotatedImage = pygame.transform.rotate(image,rotation)              #Allowing image to be rotated
+    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))    #Getting position of the image
+
+    diskCenterX,diskCenterY = imageRect.center
+    radius = rotatedImage.get_width() / 2
+    distance = math.hypot(mouseX - diskCenterX, mouseY - diskCenterY)       #calculating the distance from the center of the disk to the mouse
+
     for event in pygame.event.get():    #Event system
         if event.type == pygame.QUIT:   #If you leave the game, close the game
             pygame.quit()
@@ -135,13 +149,15 @@ while True:
             #ALL CLICK DETECTION WILL GO HERE
             #-------------------------------------------------------------------------------
             if animEnd == True:         #If the animation has played, the disk is clickable
-                if imageRect.collidepoint(mousepos):
-                    imageSize = 1.5
+                if distance <= radius:      #if the mouse is over the disk
+                    imageSize = 1.7
                     if clicked == True:
                         clicked = False
                     else:
                         clicked = True
-            #-------------------------------------------------------------------------------
+                elif settingsTabRect.collidepoint(mousepos) and clicked:
+                    sClicked = True
+                    
     screen.fill((0,0,0))
 
     #Setting up the disk
@@ -167,6 +183,10 @@ while True:
         playTabRect = playTab.get_rect(topleft = (pPosX, pPosY))
         text_play_rect = text_play.get_rect(center = playTabRect.center)
 
+        chartTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
+        chartTabRect = chartTab.get_rect(topleft = (sPosX, cPosY))
+        text_chart_rect = text_play.get_rect(center = chartTabRect.center)
+
         screen.blit(background, backgroundRect)
         rotation += 1       #Spins the disk counter-clockwise
         opacity -= 10
@@ -178,16 +198,18 @@ while True:
 
         pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
         pygame.draw.rect(screen, (0,204,0),playTabRect, border_radius=100)
+        pygame.draw.rect(screen, (247, 114, 45),chartTabRect, border_radius=100)
         screen.blit(text_settings,text_settings_rect)
         screen.blit(text_play, text_play_rect)
+        screen.blit(text_chart, text_chart_rect)
         screen.blit(rotatedImage, imageRect)        #Blits disk over the background
         if clicked:
             if sPosX > 500:     
                 sPosX -= 5
             if pPosX > 550:
                 pPosX -= 5
-            if imageSize < 1.2:
-                imageSize = 1.2
+            if imageSize < 1.4:
+                imageSize = 1.4
             if tWidth < 600:
                 tWidth += (math.sqrt(600 - tWidth)) * 1.3
             if playPosX > 450:
@@ -195,7 +217,7 @@ while True:
                 imageSize -= 0.01
             else:
                 playPosX = 450
-                imageSize = 1.2
+                imageSize = 1.4
 
         else:
             if sPosX < 600:
@@ -213,7 +235,7 @@ while True:
                 screen.blit(background, backgroundRect)
                 screen.blit(rotatedImage, imageRect)
                 playPosX = 700
-                imageSize = 1
+                imageSize = 1.2
         screen.blit(tint, tintRect)
         tint.set_alpha(opacity)
     pygame.display.flip()
