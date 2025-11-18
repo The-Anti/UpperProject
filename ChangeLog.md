@@ -23,3 +23,6 @@ Resized the settings button, added green play button and added text for both but
 
 23-09-2025
 Added functionality to the Settings button, opening a side panel where the settings will be. Created a new file for the settings tab (called settingsTab.py) and linked it to Menu.py to reduce clutter and test out linking feature.
+
+18-11-2025
+Added toggle buttons for the ghost tapping and scroll direction
