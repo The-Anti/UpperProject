@@ -25,7 +25,9 @@ clock = pygame.time.Clock()
 #------------------------------------------------------------------------------------------------------
 pygame.font.init()
 
+bigText = pygame.font.Font('bedstead-002.002/bedstead.otf', 70)
 text = pygame.font.Font('bedstead-002.002/bedstead.otf', 40)
+subText = pygame.font.Font('bedstead-002.002/bedstead.otf', 25)
 text_settings = text.render('Settings', True, (0,0,0))
 text_play = text.render('Play', True, (0,0,0))
 text_chart = text.render('Editor', True, (0,0,0))
@@ -68,11 +70,26 @@ tintScreen = False
 #------------------------------------------------------------------------------------------------------
 #DO NOT DELETE
 
+
 sClicked = False
 sMenuOpen = False
 settingsMenu = pygame.Surface((W/3,H),pygame.SRCALPHA)
 settingsMenu.fill((80,80,80))
 settingsMenuRect = settingsMenu.get_rect(topleft = (-W/3,0))
+
+settingsText = bigText.render("Settings", True, (0,0,0))
+
+gTappingText = subText.render("Ghost Tapping", True, (0,0,0))
+
+scrollText = subText.render("Scroll toggle", True, (0,0,0))
+upScrollText = subText.render("(Upscroll)", True, (0,0,0))
+downScrollText = subText.render("(Downscroll)", True, (0,0,0))
+testtext = subText.render("unused", True, (0,0,0))
+
+keybindsText = subText.render("Keybinds", True, (0,0,0))
+
+
+
 
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
@@ -159,6 +176,41 @@ def openSettings():
     else:
         closeSettings()
 #------------------------------------------------------------------------------------------------------
+#please do not touch this class, it took away 2 hours of my life
+class tickBoxButton():
+    def __init__(self, w, h):
+        self.w = w
+        self.h = h
+        self.button = pygame.Surface((self.w, self.h),pygame.SRCALPHA)
+        self.flag = False
+    
+    def updatePos(self,x,y):
+        buttonRect = self.button.get_rect(center =(x,y))
+        screen.blit(self.button,buttonRect)
+        return buttonRect
+
+    def clickDetect(self, mousepos, r):
+        if r.collidepoint(mousepos):
+            if self.flag:
+                self.flag = False
+            else:
+                self.flag = True
+            
+    def updateColour(self):
+        if self.flag:
+            self.button.fill((0,255,0))
+            return "green"
+        else:
+            self.button.fill((255,0,0))
+            return "red"
+
+#toggle buttons that use the class above
+gTappingButton = tickBoxButton(50,50)
+scrollButton = tickBoxButton(50,50)
+buttonList = [gTappingButton,scrollButton]
+
+        
+#------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 
@@ -177,11 +229,28 @@ pPosY = 360
 cPosY = 460
 #------------------------------------------------------------------------------------------------------
 clicked = False
+toggleFlag = False
+
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #DO NOT DELETE
 while True:
+
+    for i in buttonList:
+        i.updateColour()
+
+    #setting up the text
+    settingsTextRect = settingsText.get_rect(center=(settingsMenuRect.centerx,settingsMenuRect.centery - 300))
+
+    scrollTextRect = scrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 120))
+    upScrollTextRect = upScrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 80))
+    downScrollTextRect = downScrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 80))
+    testtextrect = testtext.get_rect(center = (settingsMenuRect.centerx+150,settingsMenuRect.centery - 100))
+
+    gTappingRect = gTappingText.get_rect(center=(settingsMenuRect.centerx - 100, settingsMenuRect.centery-200))
+    
+
     mousepos = pygame.mouse.get_pos()
     mouseX,mouseY = mousepos
 
@@ -194,6 +263,7 @@ while True:
     radius = rotatedImage.get_width() / 2
     distance = math.hypot(mouseX - diskCenterX, mouseY - diskCenterY)       #calculating the distance from the center of the disk to the mouse
 
+    
     for event in pygame.event.get():    #Event system
         if event.type == pygame.QUIT:   #If you leave the game, close the game
             pygame.quit()
@@ -215,13 +285,8 @@ while True:
                         sClicked = False
                     else:
                         sClicked = True
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-                
-
-                
-
+                gTappingButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)) #allows buttons to be clicked
+                scrollButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300))
             #-------------------------------------------------------------------------------
     screen.fill((0,0,0))
 
@@ -265,6 +330,9 @@ while True:
         screen.blit(text_chart, text_chart_rect)
         screen.blit(rotatedImage, imageRect)
         screen.blit(settingsMenu,settingsMenuRect)
+        screen.blit(settingsText,settingsTextRect)
+        screen.blit(gTappingText,gTappingRect)
+        screen.blit(scrollText,scrollTextRect)
         if clicked:
             if sPosX > 500:     
                 sPosX -= 5
@@ -298,6 +366,14 @@ while True:
                 playPosX = 700
                 imageSize = 1.2
 
+        if scrollButton.updateColour() == "green":
+            screen.blit(downScrollText,downScrollTextRect)
+        elif scrollButton.updateColour() == "red":
+            screen.blit(upScrollText,upScrollTextRect)
+
+        gTappingButton.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)
+        scrollButton.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300)
+        screen.blit(testtext,testtextrect)
 
         screen.blit(tint, tintRect)
         tint.set_alpha(opacity)
@@ -308,4 +384,3 @@ while True:
 
     pygame.display.flip()
     clock.tick(60)
-
