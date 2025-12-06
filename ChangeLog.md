@@ -26,3 +26,6 @@ Added functionality to the Settings button, opening a side panel where the setti
 
 18-11-2025
 Added toggle buttons for the ghost tapping and scroll direction
+
+06-12-2025 (semi big update)
+Added changeable keybinds to the game, allowing the user to customise them to whatever they want. The user can use (nearly) any key on their keyboard but have to have 4 unique keybinds. Added system to actually save the settings now, including saving the ghost tapping setting.
