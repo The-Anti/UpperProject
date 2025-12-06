@@ -10,6 +10,7 @@
 import pygame, math
 from sys import exit
 import threading
+import sqlite3
 
 W = 1400
 H = 800
@@ -155,26 +156,33 @@ def startAnim():
 #------------------------------------------------------------------------------------------------------
 #DO NOT DELETE
 def closeSettings():
-    global sMenuOpen
-    if settingsMenuRect.centerx < 0:
-        settingsMenuRect.centerx -= math.sqrt(W/3 + settingsMenuRect.centerx)*3
-        sMenuOpen = False
+    global sMenuOpen, save
+    if settingsMenuRect.centerx < 0:    #If menu is offscreen...
+        settingsMenuRect.centerx -= math.sqrt(W/3 + settingsMenuRect.centerx)*3 #Keep it off screen
+        sMenuOpen = False   #Menu is closed / off screen
     else:
         settingsMenuRect.centerx -= math.sqrt(W/4 - settingsMenuRect.centerx)
+        if save == False and settingsMenuRect.centerx >= 215:       #check to make sure that data isn't saved multiple times a second AKA reduce lag
+            save = True
 
-    if settingsMenuRect.centerx < -W/3:
+    if settingsMenuRect.centerx < -W/3:     #If its offscreen, keep it offscreen at a specific point
         settingsMenuRect.centerx = -W/3
 #------------------------------------------------------------------------------------------------------
 def openSettings():
-    global sMenuOpen, sClicked
-    if sClicked:
-        if settingsMenuRect.centerx < 0:
-            settingsMenuRect.centerx += math.sqrt(W/3 + settingsMenuRect.centerx)*3
+    global sMenuOpen, sClicked, keybindNotSetFlag, save
+    if sClicked:    #If menu button is clicked
+        if settingsMenuRect.centerx < 0:        #if its off screen
+            settingsMenuRect.centerx += math.sqrt(W/3 + settingsMenuRect.centerx)*3 #move onto the screen
         else:
-            sMenuOpen = True
-            settingsMenuRect.centerx += math.sqrt(W/6 - settingsMenuRect.centerx)
-    else:
+            sMenuOpen = True    #menu is open and on screen
+            settingsMenuRect.centerx += math.sqrt(W/6 - settingsMenuRect.centerx)   #make it ease out
+    elif not sClicked and not '_' in keybinds:  #Are the keybinds set and the user clicked off the menu?
+        keybindNotSetFlag = False   #say that the keybinds are good
         closeSettings()
+    else:
+        save = False    #do not save
+        keybindNotSetFlag = True    #a keybind is not set
+        sClicked = True     #keep menu open
 #------------------------------------------------------------------------------------------------------
 #please do not touch this class, it took away 2 hours of my life
 class tickBoxButton():
@@ -190,11 +198,14 @@ class tickBoxButton():
         return buttonRect
 
     def clickDetect(self, mousepos, r):
+        global ghostTappingBool
         if r.collidepoint(mousepos):
-            if self.flag:
+            if self.flag:   #if its turned off
                 self.flag = False
-            else:
+                ghostTappingBool = False
+            else:       #if its turned on
                 self.flag = True
+                ghostTappingBool = True
             
     def updateColour(self):
         if self.flag:
@@ -231,6 +242,42 @@ cPosY = 460
 clicked = False
 toggleFlag = False
 
+
+#keybind stuff
+#------------------------------------------------------------------------------------------------------
+key1Value = 'A'
+key2Value = 'S'
+key3Value = 'D'
+key4Value = 'F'
+
+key1 = pygame.Surface((100,100),pygame.SRCALPHA)
+key2 = pygame.Surface((100,100),pygame.SRCALPHA)
+key3 = pygame.Surface((100,100),pygame.SRCALPHA)
+key4 = pygame.Surface((100,100),pygame.SRCALPHA)
+
+keys = [key1, key2, key3, key4]
+
+#creating database
+database = sqlite3.connect("Keybinds.db")
+cur = database.cursor()
+cur.execute('CREATE TABLE IF NOT EXISTS keybinds (id INTEGER NOT NULL PRIMARY KEY, key1 TEXT, key2 TEXT, key3 TEXT, key4 TEXT, ghost BOOLEAN)')
+#ID, KEYBINDS, GHOST TAPPING
+
+cur.execute('INSERT OR IGNORE INTO keybinds (id,key1,key2,key3,key4,ghost) VALUES (1,?,?,?,?,?)', ('A', 'S', 'D', 'F',False))
+#Only 1 row, Keybinds set to (ASDF) and ghost tapping is OFF by DEFAULT
+
+database.commit()
+
+keybindNotSet = text.render('Invalid keybinds', True, (0,0,0))
+
+
+selected = None     #which keybind is selected
+keyClicked = False  #boolean to show if a keybind was clicked
+invalid = False     #check if keybind is repeated
+keybindNotSetFlag = False   #check for a keybind being '_'
+save = False                #save flag
+ghostTappingBool = False    #boolean for ghost tapping
+#------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
@@ -249,11 +296,34 @@ while True:
     testtextrect = testtext.get_rect(center = (settingsMenuRect.centerx+150,settingsMenuRect.centery - 100))
 
     gTappingRect = gTappingText.get_rect(center=(settingsMenuRect.centerx - 100, settingsMenuRect.centery-200))
-    
+
+    keybindsTextRect = keybindsText.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery))
+
+    key1Rect = key1.get_rect(center = (settingsMenuRect.centerx - 150, settingsMenuRect.centery + 100))
+    key2Rect = key2.get_rect(center = (settingsMenuRect.centerx - 50, settingsMenuRect.centery + 100))
+    key3Rect = key3.get_rect(center = (settingsMenuRect.centerx + 50, settingsMenuRect.centery + 100))
+    key4Rect = key4.get_rect(center = (settingsMenuRect.centerx + 150, settingsMenuRect.centery + 100))
+
+    keysRect = [key1Rect, key2Rect, key3Rect, key4Rect]
+
+    keybinds = [key1Value, key2Value, key3Value, key4Value]
+
+    key1txt = text.render(key1Value, True, (0,0,0))
+    key2txt = text.render(key2Value, True, (0,0,0))
+    key3txt = text.render(key3Value, True, (0,0,0))
+    key4txt = text.render(key4Value, True, (0,0,0))
+
+    invalidtxt = text.render("Keybind in use", True, (0,0,0))
+    txtrect = invalidtxt.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery + 30))
+
+    keybindNotSetRect = keybindNotSet.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery +30))
 
     mousepos = pygame.mouse.get_pos()
     mouseX,mouseY = mousepos
 
+
+    #settings up keybind stuff
+    
     #Setting up the disk
     image = pygame.transform.scale_by(playButtonImage,imageSize)        #Image itself
     rotatedImage = pygame.transform.rotate(image,rotation)              #Allowing image to be rotated
@@ -272,8 +342,10 @@ while True:
             #ALL CLICK DETECTION WILL GO HERE
             #-------------------------------------------------------------------------------
             if animEnd == True:         #If the animation has played, the disk is clickable
-                if sClicked and not settingsMenuRect.collidepoint(mousepos):
-                    sClicked = False
+                if sClicked and not settingsMenuRect.collidepoint(mousepos):    #If settings is open and user clicked away from it
+                    if not keybindNotSetFlag:       #Initiates the settings save and closes settings menu if if the keybinds are set properly
+                        save = True
+                    sClicked = False        #Close settings
                 if distance <= radius and not sMenuOpen:      #if the mouse is over the disk and when the settings menu is not open
                     imageSize = 1.7
                     if clicked == True:
@@ -287,6 +359,43 @@ while True:
                         sClicked = True
                 gTappingButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)) #allows buttons to be clicked
                 scrollButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300))
+
+            #Check if a keybind has been clicked to change
+            if key1Rect.collidepoint(mousepos):
+                selected = key1
+                keyClicked = True
+                key1Value = '_'
+            elif key2Rect.collidepoint(mousepos):
+                selected = key2
+                keyClicked = True
+                key2Value = '_'
+            elif key3Rect.collidepoint(mousepos):
+                selected = key3
+                keyClicked = True
+                key3Value = '_'
+            elif key4Rect.collidepoint(mousepos):
+                selected = key4
+                keyClicked = True
+                key4Value = '_'
+            else:
+                keyClicked = False
+
+        if event.type == pygame.KEYDOWN and keyClicked == True: #if the user is changing a keybind
+            keyPressed = pygame.key.name(event.key).upper()
+            if keyPressed in keybinds:  #if the new keybind is already a keybind then dont allow
+                invalid = True
+            else:                       #otherwise allow new keybind
+                if selected == key1:
+                    key1Value = keyPressed
+                elif selected == key2:
+                    key2Value = keyPressed
+                elif selected == key3:
+                    key3Value = keyPressed
+                elif selected == key4:
+                    key4Value = keyPressed
+                keyClicked = False
+                invalid = False
+
             #-------------------------------------------------------------------------------
     screen.fill((0,0,0))
 
@@ -321,6 +430,9 @@ while True:
         if opacity <= 0:
             opacity = 0
 
+        #--------------------------------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------------------------
 
         pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
         pygame.draw.rect(screen, (0,204,0),playTabRect, border_radius=100)
@@ -366,6 +478,10 @@ while True:
                 playPosX = 700
                 imageSize = 1.2
 
+        #--------------------------------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------------------------
+        #DO NOT DELETE
         if scrollButton.updateColour() == "green":
             screen.blit(downScrollText,downScrollTextRect)
         elif scrollButton.updateColour() == "red":
@@ -377,6 +493,33 @@ while True:
 
         screen.blit(tint, tintRect)
         tint.set_alpha(opacity)
+
+        if invalid and not keybindNotSetFlag:
+            screen.blit(invalidtxt, txtrect)
+        if keybindNotSetFlag:
+            screen.blit(keybindNotSet,keybindNotSetRect)
+
+        for i in range(0, 4):
+            if selected == keys[i] and keybinds[i] == '_' and keyClicked:
+                keys[i].fill((100,100,100))
+            else:
+                keys[i].fill((200,200,200))
+
+        if save:
+            cur.execute('REPLACE INTO keybinds (id, key1, key2, key3, key4, ghost) VALUES (1,?,?,?,?,?)', (key1Value, key2Value, key3Value, key4Value, ghostTappingBool))
+            database.commit()
+            save = False
+
+        screen.blit(keybindsText, keybindsTextRect)
+        screen.blit(key1, key1Rect)
+        screen.blit(key2, key2Rect)
+        screen.blit(key3, key3Rect)
+        screen.blit(key4, key4Rect)
+        screen.blit(key1txt, (key1Rect.centerx - 15, key1Rect.centery - 20))
+        screen.blit(key2txt, (key2Rect.centerx - 15, key2Rect.centery - 20))
+        screen.blit(key3txt, (key3Rect.centerx - 15, key3Rect.centery - 20))
+        screen.blit(key4txt, (key4Rect.centerx - 15, key4Rect.centery - 20))
+
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
