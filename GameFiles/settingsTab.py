@@ -260,17 +260,35 @@ keys = [key1, key2, key3, key4]
 #creating database
 database = sqlite3.connect("Keybinds.db")
 cur = database.cursor()
-cur.execute('CREATE TABLE IF NOT EXISTS keybinds (id INTEGER NOT NULL PRIMARY KEY, key1 TEXT, key2 TEXT, key3 TEXT, key4 TEXT, ghost BOOLEAN)')
+cur.execute('CREATE TABLE IF NOT EXISTS keybinds'
+' (id INTEGER NOT NULL PRIMARY KEY, key1 TEXT, key2 TEXT, key3 TEXT, key4 TEXT, ghost BOOLEAN, volume INTEGEER, notespeed REAL)')
 #ID, KEYBINDS, GHOST TAPPING
 
-cur.execute('INSERT OR IGNORE INTO keybinds (id,key1,key2,key3,key4,ghost) VALUES (1,?,?,?,?,?)', ('A', 'S', 'D', 'F',False))
+cur.execute('INSERT OR IGNORE INTO keybinds (id,key1,key2,key3,key4,ghost,volume,notespeed) VALUES (1,?,?,?,?,?,?,?)', ('A', 'S', 'D', 'F',False, 50,1))
 #Only 1 row, Keybinds set to (ASDF) and ghost tapping is OFF by DEFAULT
 
 database.commit()
 
 keybindNotSet = text.render('Invalid keybinds', True, (0,0,0))
 
+#volumeStuff
+volumeTxt = subText.render("Volume", True, (0,0,0))
 
+acceptableVolumeCharacters = ["0","1","2",'3','4','5','6','7','8','9']
+
+inputBox = pygame.Surface((50,50),pygame.SRCALPHA)
+inputBox.fill((124,124,124))
+
+volumeClicked = False
+count = 0
+
+currentVolume = 50
+
+
+
+done = True
+inputFirstNumber = True
+hundredFlag = False
 selected = None     #which keybind is selected
 keyClicked = False  #boolean to show if a keybind was clicked
 invalid = False     #check if keybind is repeated
@@ -316,7 +334,11 @@ while True:
     invalidtxt = text.render("Keybind in use", True, (0,0,0))
     txtrect = invalidtxt.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery + 30))
 
+    boxRect = inputBox.get_rect(center = (settingsMenuRect.centerx + 100, settingsMenuRect.centery + 200))
     keybindNotSetRect = keybindNotSet.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery +30))
+
+    volume = subText.render(f"{currentVolume}", True, (0,0,0))
+
 
     mousepos = pygame.mouse.get_pos()
     mouseX,mouseY = mousepos
@@ -352,13 +374,29 @@ while True:
                         clicked = False
                     else:
                         clicked = True
-                elif settingsTabRect.collidepoint(mousepos) and clicked:
+                elif settingsTabRect.collidepoint(mousepos) and clicked:    #opening the menu
                     if sMenuOpen:
                         sClicked = False
                     else:
                         sClicked = True
                 gTappingButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)) #allows buttons to be clicked
                 scrollButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300))
+
+                if volumeClicked:       #toggling volume clicked
+                    volumeClicked = False
+                    if currentVolume == '' or currentVolume == '-':
+                        currentVolume = 0
+
+                if boxRect.collidepoint(mousepos):
+                    volumeClicked = True
+                    done = False
+                    inputFirstNumber = False
+                    hundredFlag = False
+
+                    num1 = 0
+                    num2 = 0
+                    num3 = 0
+
 
             #Check if a keybind has been clicked to change
             if key1Rect.collidepoint(mousepos):
@@ -395,6 +433,28 @@ while True:
                     key4Value = keyPressed
                 keyClicked = False
                 invalid = False
+
+        if event.type == pygame.KEYDOWN and volumeClicked:
+            keyPressed = pygame.key.name(event.key).upper()
+            if keyPressed in acceptableVolumeCharacters or keyPressed == "RETURN":
+                if currentVolume == 10 and keyPressed == '0':
+                    currentVolume = 100
+                    done = True
+                    save = True
+                    volumeClicked = False
+                    hundredFlag = True
+                elif keyPressed == "RETURN":
+                    done = True
+                    save = True
+                    volumeClicked = False
+                elif inputFirstNumber and keyPressed in acceptableVolumeCharacters:
+                    num2 = keyPressed
+                    currentVolume = int(num1) * 10 + int(num2)
+                else:
+                    num1 = keyPressed
+                    currentVolume = num1
+                    inputFirstNumber = True
+
 
             #-------------------------------------------------------------------------------
     screen.fill((0,0,0))
@@ -505,10 +565,24 @@ while True:
             else:
                 keys[i].fill((200,200,200))
 
+        if not done and not inputFirstNumber and volumeClicked:
+            count += 1
+            if count > 60:
+                count = 0
+            if count > 30:
+                currentVolume = "-"
+            else:
+                currentVolume = ""
+
+        
+
+
         if save:
-            cur.execute('REPLACE INTO keybinds (id, key1, key2, key3, key4, ghost) VALUES (1,?,?,?,?,?)', (key1Value, key2Value, key3Value, key4Value, ghostTappingBool))
+            cur.execute('REPLACE INTO keybinds (id, key1, key2, key3, key4, ghost, volume) VALUES (1,?,?,?,?,?,?)', 
+                        (key1Value, key2Value, key3Value, key4Value, ghostTappingBool,currentVolume))
             database.commit()
             save = False
+            print('saving')
 
         screen.blit(keybindsText, keybindsTextRect)
         screen.blit(key1, key1Rect)
@@ -519,6 +593,14 @@ while True:
         screen.blit(key2txt, (key2Rect.centerx - 15, key2Rect.centery - 20))
         screen.blit(key3txt, (key3Rect.centerx - 15, key3Rect.centery - 20))
         screen.blit(key4txt, (key4Rect.centerx - 15, key4Rect.centery - 20))
+
+        screen.blit(inputBox,boxRect)
+        screen.blit(volumeTxt,(boxRect.centerx-150, boxRect.centery-15))
+        if hundredFlag:
+            screen.blit(volume,(boxRect.centerx-25, boxRect.centery-10))
+        else:
+            screen.blit(volume,(boxRect.centerx-15, boxRect.centery-10))
+
 
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
