@@ -29,3 +29,6 @@ Added toggle buttons for the ghost tapping and scroll direction
 
 06-12-2025 (semi big update)
 Added changeable keybinds to the game, allowing the user to customise them to whatever they want. The user can use (nearly) any key on their keyboard but have to have 4 unique keybinds. Added system to actually save the settings now, including saving the ghost tapping setting.
+
+16-12-2025
+Added volume button to customise your volume setting (so far doesn't do anything other than update the database)
