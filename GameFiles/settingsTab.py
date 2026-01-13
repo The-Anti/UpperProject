@@ -1,15 +1,6 @@
-#THIS IS A FILE USED BY MENU.PY
-#WHEN FINISHED WITH THIS FILE
-#DELETE EVERYTHING IN BETWEEN THE TRIPLE BRACKETS UNLESS STATED ABOVE
-#ONLY USED TO HELP MAKE THE CODE
+# #THIS IS A FILE USED BY MENU.PY
 
-
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
 import pygame, math
-from sys import exit
-import threading
 import sqlite3
 
 W = 1400
@@ -22,55 +13,17 @@ pygame.display.set_caption('Rhythmania')
 clock = pygame.time.Clock()
 
 
-#Text stuff
-#------------------------------------------------------------------------------------------------------
+# #Text stuff
+# #------------------------------------------------------------------------------------------------------
 pygame.font.init()
 
 bigText = pygame.font.Font('bedstead-002.002/bedstead.otf', 70)
 text = pygame.font.Font('bedstead-002.002/bedstead.otf', 40)
 subText = pygame.font.Font('bedstead-002.002/bedstead.otf', 25)
+subberText = pygame.font.Font('bedstead-002.002/bedstead.otf', 20)
 text_settings = text.render('Settings', True, (0,0,0))
 text_play = text.render('Play', True, (0,0,0))
 text_chart = text.render('Editor', True, (0,0,0))
-#------------------------------------------------------------------------------------------------------
-
-
-
-
-#menu circle thing
-#------------------------------------------------------------------------------------------------------
-count = 0
-
-playPosX = -150  #THIS IS THE DISK, NOT TO BE CONFUSED WITH THE GREEN 'PLAY' BUTTON
-playPosY = H/2
-
-flagBounce = False  #flag checking if it overshot
-flagFinal = False   #flag checking if it hit the center after overshoot
-
-playButtonSurface = pygame.Surface((300,300))
-playButtonSurface.fill((100,100,100))
-playButtonRect = playButtonSurface.get_rect(center = (playPosX,playPosY))
-
-playButtonImage = pygame.image.load('PlayButton.png').convert_alpha()       #Image for the tab menu
-imageSize = 0.5     #starting size
-sizeTrip = False    #flag for seeing if image has reached max size
-rotation = 30       #starting rotation
-diff = 0
-animEnd = False
-
-#tinting screen
-opacity = 0
-tint = pygame.Surface((W,H))
-tint.fill((235,235,235))
-tintRect = tint.get_rect(center=(W/2,H/2))
-
-
-tintScreen = False
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#DO NOT DELETE
-
 
 sClicked = False
 sMenuOpen = False
@@ -89,102 +42,14 @@ testtext = subText.render("unused", True, (0,0,0))
 
 keybindsText = subText.render("Keybinds", True, (0,0,0))
 
-
-
-
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------
 
 
 background = pygame.image.load('Background.jpg').convert_alpha()
 backgroundRect = background.get_rect(center = (W/2,H/2))
 
 
-#Starting Animation
-#------------------------------------------------------------------------------------------------------
-
-def startAnim():
-    global animEnd, imageSize, sizeTrip, tintScreen, opacity, flagBounce, flagFinal, rotation, playPosX, playPosY, count
-    if animEnd == False:
-        if imageSize >= 1.7:    #If the size of the disk is too big then trigger the flag that forces it to go smaller.
-            sizeTrip = True
-
-        if sizeTrip and imageSize <= 1:     #Uses the flag from above to set the size to normal.
-            imageSize = 1
-
-        if tintScreen:          #Tints the screen white when the flag is activated
-            opacity += 7
-        else:                   #When flag is not active, no tinting.
-            opacity = 0
-
-        if flagBounce == False and flagFinal == False:  #Moving from off screen to overshoot
-            rotation -= (1/2 * count)**2 + (1/4 * count)    #Rotating clockwise following a quadratic graph
-            playPosX += count**2    #Moves the disk right
-            count += 0.2        
-            imageSize += 0.015
-        elif flagFinal == False:    #Moving from overshoot to centre
-            count += 0.1
-            playPosX -= count**3        #Moving disk left
-            rotation += count
-            if sizeTrip == False:       #If the disk is not big enough, increase size. Else start to shrink it quadratically.
-                imageSize += 0.02
-            else:
-                imageSize -= (1/6 * count)**2
-            if playPosX <= W/2:         #If the disk is to the left of the centre, blit it in the centre.
-                playPosX = W/2
-
-        if playPosX >= W/2 and flagBounce == False:     #Settings for center to overshoot
-            count -= 4                                      #Rotate the disk clockwise a little faster and tint screen
-            rotation -= (1/2 * count)**2 + (1/3 * count)
-            tintScreen = True
-        if playPosX >= W/2 + 150 and flagBounce == False:      #Settings overshoot to centre
-            flagBounce = True                                  #Trigger the bounce flag for lower if statement
-            count = 0
-            imageSize += 0.02
-        if flagBounce == True and playPosX == W/2:      #Settings for when the disk is in the centre
-            flagFinal = True                            #Flag to say the animation has finished
-            count = 0
-            rotation = 44
-            imageSize = 1.2
-            opacity = 255
-            animEnd = True
-    else:
-        return
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#DO NOT DELETE
-def closeSettings():
-    global sMenuOpen, save
-    if settingsMenuRect.centerx < 0:    #If menu is offscreen...
-        settingsMenuRect.centerx -= math.sqrt(W/3 + settingsMenuRect.centerx)*3 #Keep it off screen
-        sMenuOpen = False   #Menu is closed / off screen
-    else:
-        settingsMenuRect.centerx -= math.sqrt(W/4 - settingsMenuRect.centerx)
-        if save == False and settingsMenuRect.centerx >= 215:       #check to make sure that data isn't saved multiple times a second AKA reduce lag
-            save = True
-
-    if settingsMenuRect.centerx < -W/3:     #If its offscreen, keep it offscreen at a specific point
-        settingsMenuRect.centerx = -W/3
-#------------------------------------------------------------------------------------------------------
-def openSettings():
-    global sMenuOpen, sClicked, keybindNotSetFlag, save
-    if sClicked:    #If menu button is clicked
-        if settingsMenuRect.centerx < 0:        #if its off screen
-            settingsMenuRect.centerx += math.sqrt(W/3 + settingsMenuRect.centerx)*3 #move onto the screen
-        else:
-            sMenuOpen = True    #menu is open and on screen
-            settingsMenuRect.centerx += math.sqrt(W/6 - settingsMenuRect.centerx)   #make it ease out
-    elif not sClicked and not '_' in keybinds:  #Are the keybinds set and the user clicked off the menu?
-        keybindNotSetFlag = False   #say that the keybinds are good
-        closeSettings()
-    else:
-        save = False    #do not save
-        keybindNotSetFlag = True    #a keybind is not set
-        sClicked = True     #keep menu open
-#------------------------------------------------------------------------------------------------------
-#please do not touch this class, it took away 2 hours of my life
+# #please do not touch this class, it took away 2 hours of my life
 class tickBoxButton():
     def __init__(self, w, h):
         self.w = w
@@ -206,6 +71,7 @@ class tickBoxButton():
             else:       #if its turned on
                 self.flag = True
                 ghostTappingBool = True
+        return all
             
     def updateColour(self):
         if self.flag:
@@ -215,397 +81,395 @@ class tickBoxButton():
             self.button.fill((255,0,0))
             return "red"
 
-#toggle buttons that use the class above
-gTappingButton = tickBoxButton(50,50)
-scrollButton = tickBoxButton(50,50)
-buttonList = [gTappingButton,scrollButton]
 
+class settings():
+    #NOT IN WHILE LOOP
+    def __init__(self):
+        print('Running')
+        global text, bigText, subText, subberText
+        global ghostTappingBool
+        self.sClicked = False
+        self.sMenuOpen = False
+        self.settingsMenu = pygame.Surface((W/3,H),pygame.SRCALPHA)
+        self.settingsMenu.fill((80,80,80))
+        self.settingsMenuRect = self.settingsMenu.get_rect(topleft = (-W/3,0))
+
+        self.settingsText = bigText.render("Settings", True, (0,0,0))
+
+        self.gTappingText = subText.render("Ghost Tapping", True, (0,0,0))
+
+        self.scrollText = subText.render("Scroll toggle", True, (0,0,0))
+        self.upScrollText = subText.render("(Upscroll)", True, (0,0,0))
+        self.downScrollText = subText.render("(Downscroll)", True, (0,0,0))
+        self.testtext = subText.render("unused", True, (0,0,0))
+
+        self.keybindsText = subText.render("Keybinds", True, (0,0,0))
+        self.gTappingButton = tickBoxButton(50,50)
+        self.scrollButton = tickBoxButton(50,50)
+        self.buttonList = [self.gTappingButton,self.scrollButton]
+        self.key1Value = 'A'
+        self.key2Value = 'S'
+        self.key3Value = 'D'
+        self.key4Value = 'F'
+
+        self.key1 = pygame.Surface((100,100),pygame.SRCALPHA)
+        self.key2 = pygame.Surface((100,100),pygame.SRCALPHA)
+        self.key3 = pygame.Surface((100,100),pygame.SRCALPHA)
+        self.key4 = pygame.Surface((100,100),pygame.SRCALPHA)
+
+        self.keys = [self.key1, self.key2, self.key3, self.key4]
+
+        self.keybindNotSet = text.render('Invalid settings', True, (0,0,0))
+
+        self.volumeTxt = subText.render("Volume", True, (0,0,0))
+
+        self.acceptableVolumeCharacters = ["0","1","2",'3','4','5','6','7','8','9']
+
+        self.inputBox = pygame.Surface((50,50),pygame.SRCALPHA)
+        self.inputBox.fill((124,124,124))
+
+        self.scrollSpeedBox = pygame.Surface((50,50),pygame.SRCALPHA)
+        self.scrollSpeedBox.fill((124,124,124))
+
+        self.UpScrollSpeedBox = pygame.Surface((50,50),pygame.SRCALPHA)
+        self.UpScrollSpeedBox.fill((124,124,124))
+        self.IncreaseSpeedText = subberText.render('+0.1', True, (0,0,0))
+
+        self.DownScrollSpeedBox = pygame.Surface((50,50),pygame.SRCALPHA)
+        self.DownScrollSpeedBox.fill((124,124,124))
+        self.DecreaseSpeedText = subberText.render('-0.1', True, (0,0,0))
+
+        self.volumeClicked = False
+        self.count = 0
+
+        self.currentVolume = 50
+        self.currentScrollSpeed = 1.0
+
+
+        self.done = True
+        self.inputFirstNumber = True
+        self.hundredFlag = False
+        self.selected = None     #which keybind is selected
+        self.keyClicked = False  #boolean to show if a keybind was clicked
+        self.invalid = False     #check if keybind is repeated
+        self.keybindNotSetFlag = False   #check for a keybind being '_'
+        self.save = False                #save flag
+        ghostTappingBool = False    #boolean for ghost tapping
+
+        self.settingsTextRect = self.settingsText.get_rect(center=(self.settingsMenuRect.centerx,self.settingsMenuRect.centery - 300))
+
+        self.scrollTextRect = self.scrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 120))
+        self.upScrollTextRect = self.upScrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 80))
+        self.downScrollTextRect = self.downScrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 80))
+        self.testtextrect = self.testtext.get_rect(center = (self.settingsMenuRect.centerx+150,self.settingsMenuRect.centery - 100))
+
+        self.gTappingRect = self.gTappingText.get_rect(center=(self.settingsMenuRect.centerx - 100, self.settingsMenuRect.centery-200))
+
+        self.keybindsTextRect = self.keybindsText.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery))
+
+        self.key1Rect = self.key1.get_rect(center = (self.settingsMenuRect.centerx - 150, self.settingsMenuRect.centery + 100))
+        self.key2Rect = self.key2.get_rect(center = (self.settingsMenuRect.centerx - 50, self.settingsMenuRect.centery + 100))
+        self.key3Rect = self.key3.get_rect(center = (self.settingsMenuRect.centerx + 50, self.settingsMenuRect.centery + 100))
+        self.key4Rect = self.key4.get_rect(center = (self.settingsMenuRect.centerx + 150, self.settingsMenuRect.centery + 100))
+
+        self.keysRect = [self.key1Rect, self.key2Rect, self.key3Rect, self.key4Rect]
+
+        self.keybinds = [self.key1Value, self.key2Value, self.key3Value, self.key4Value]
+
+        self.key1txt = text.render(self.key1Value, True, (0,0,0))
+        self.key2txt = text.render(self.key2Value, True, (0,0,0))
+        self.key3txt = text.render(self.key3Value, True, (0,0,0))
+        self.key4txt = text.render(self.key4Value, True, (0,0,0))
+
+        self.invalidtxt = text.render("Keybind in use", True, (0,0,0))
+        self.txtrect = self.invalidtxt.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery + 30))
+
+        self.boxRect = self.inputBox.get_rect(center = (self.settingsMenuRect.centerx + 100, self.settingsMenuRect.centery + 200))
+        self.keybindNotSetRect = self.keybindNotSet.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery +30))
+
+        self.volume = subText.render(f"{self.currentVolume}", True, (0,0,0))
+
+        self.scrollSpeedBoxRect = self.scrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery + 300))
+        self.UpScrollSpeedBoxRect = self.UpScrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx + 100, self.settingsMenuRect.centery + 300))
+        self.DownScrollSpeedBoxRect = self.DownScrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx - 100, self.settingsMenuRect.centery + 300))
+
+        self.currentScrollSpeed = round(self.currentScrollSpeed, 1)
+        self.scrollSpeed = subText.render(f"{self.currentScrollSpeed}", True, (0,0,0))
+
+        self.database = sqlite3.connect("Settings.db")
+        self.cur = self.database.cursor()
+        self.cur.execute('CREATE TABLE IF NOT EXISTS settings'
+        ' (id INTEGER NOT NULL PRIMARY KEY, key1 TEXT, key2 TEXT, key3 TEXT, key4 TEXT, ghost BOOLEAN, volume INTEGEER, notespeed REAL)')
+        #ID, KEYBINDS, GHOST TAPPING
+
+        self.cur.execute('INSERT OR IGNORE INTO settings (id,key1,key2,key3,key4,ghost,volume,notespeed) VALUES (1,?,?,?,?,?,?,?)', ('A', 'S', 'D', 'F',False, 50,1.0))
+
+
+
+
+    def closeSettings(self):
+        if self.settingsMenuRect.centerx < 0:    #If menu is offscreen...
+            self.settingsMenuRect.centerx -= math.sqrt(W/3 + self.settingsMenuRect.centerx)*3 #Keep it off screen
+            self.sMenuOpen = False   #Menu is closed / off screen
+        else:
+            self.settingsMenuRect.centerx -= math.sqrt(W/4 - self.settingsMenuRect.centerx)
+            ('Close')
+            if self.save == False and self.settingsMenuRect.centerx >= 215:       #check to make sure that data isn't saved multiple times a second AKA reduce lag
+                self.save = True
+
+        if self.settingsMenuRect.centerx < -W/3:     #If its offscreen, keep it offscreen at a specific point
+            self.settingsMenuRect.centerx = -W/3
         
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
+        return all
+
+    def openSettings(self):
+        if self.sClicked:    #If menu button is clicked
+            if self.settingsMenuRect.centerx < 0:        #if its off screen
+                self.settingsMenuRect.centerx += math.sqrt(W/3 + self.settingsMenuRect.centerx)*3 #move onto the screen
+                print('Open')
+            else:
+                self.sMenuOpen = True    #menu is open and on screen
+                self.settingsMenuRect.centerx += math.sqrt(W/6 - self.settingsMenuRect.centerx)   #make it ease out
+                print('test')
+        elif not self.sClicked and not '_' in self.keybinds:  #Are the keybinds set and the user clicked off the menu?
+            self.keybindNotSetFlag = False   #say that the keybinds are good
+            self.closeSettings()
+        else:
+            self.save = False    #do not save
+            self.keybindNotSetFlag = True    #a keybind is not set
+            self.sClicked = True     #keep menu open
+        
+        return all
 
 
-#Tab stuff
-#------------------------------------------------------------------------------------------------------
-tWidth = 220
-tHeight = 90
+    def loopedSettings(self):
+        #IN WHILE LOOP
+        for i in self.buttonList:
+            i.updateColour()
 
-sPosX = 575
-sPosY = 260
+        #setting up the text
+        self.settingsTextRect = self.settingsText.get_rect(center=(self.settingsMenuRect.centerx,self.settingsMenuRect.centery - 300))
 
-pPosX = 625
-pPosY = 360
+        self.scrollTextRect = self.scrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 120))
+        self.upScrollTextRect = self.upScrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 80))
+        self.downScrollTextRect = self.downScrollText.get_rect(center = (self.settingsMenuRect.centerx-100,self.settingsMenuRect.centery - 80))
+        self.testtextrect = self.testtext.get_rect(center = (self.settingsMenuRect.centerx+150,self.settingsMenuRect.centery - 100))
 
-cPosY = 460
-#------------------------------------------------------------------------------------------------------
-clicked = False
-toggleFlag = False
+        self.gTappingRect = self.gTappingText.get_rect(center=(self.settingsMenuRect.centerx - 100, self.settingsMenuRect.centery-200))
 
+        self.keybindsTextRect = self.keybindsText.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery))
 
-#keybind stuff
-#------------------------------------------------------------------------------------------------------
-key1Value = 'A'
-key2Value = 'S'
-key3Value = 'D'
-key4Value = 'F'
+        self.key1Rect = self.key1.get_rect(center = (self.settingsMenuRect.centerx - 150, self.settingsMenuRect.centery + 100))
+        self.key2Rect = self.key2.get_rect(center = (self.settingsMenuRect.centerx - 50, self.settingsMenuRect.centery + 100))
+        self.key3Rect = self.key3.get_rect(center = (self.settingsMenuRect.centerx + 50, self.settingsMenuRect.centery + 100))
+        self.key4Rect = self.key4.get_rect(center = (self.settingsMenuRect.centerx + 150, self.settingsMenuRect.centery + 100))
 
-key1 = pygame.Surface((100,100),pygame.SRCALPHA)
-key2 = pygame.Surface((100,100),pygame.SRCALPHA)
-key3 = pygame.Surface((100,100),pygame.SRCALPHA)
-key4 = pygame.Surface((100,100),pygame.SRCALPHA)
+        self.keysRect = [self.key1Rect, self.key2Rect, self.key3Rect, self.key4Rect]
 
-keys = [key1, key2, key3, key4]
+        self.keybinds = [self.key1Value, self.key2Value, self.key3Value, self.key4Value]
 
-#creating database
-database = sqlite3.connect("Keybinds.db")
-cur = database.cursor()
-cur.execute('CREATE TABLE IF NOT EXISTS keybinds'
-' (id INTEGER NOT NULL PRIMARY KEY, key1 TEXT, key2 TEXT, key3 TEXT, key4 TEXT, ghost BOOLEAN, volume INTEGEER, notespeed REAL)')
-#ID, KEYBINDS, GHOST TAPPING
+        self.key1txt = text.render(self.key1Value, True, (0,0,0))
+        self.key2txt = text.render(self.key2Value, True, (0,0,0))
+        self.key3txt = text.render(self.key3Value, True, (0,0,0))
+        self.key4txt = text.render(self.key4Value, True, (0,0,0))
 
-cur.execute('INSERT OR IGNORE INTO keybinds (id,key1,key2,key3,key4,ghost,volume,notespeed) VALUES (1,?,?,?,?,?,?,?)', ('A', 'S', 'D', 'F',False, 50,1))
-#Only 1 row, Keybinds set to (ASDF) and ghost tapping is OFF by DEFAULT
+        self.invalidtxt = text.render("Keybind in use", True, (0,0,0))
+        self.txtrect = self.invalidtxt.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery + 30))
 
-database.commit()
+        self.boxRect = self.inputBox.get_rect(center = (self.settingsMenuRect.centerx + 100, self.settingsMenuRect.centery + 200))
+        self.keybindNotSetRect = self.keybindNotSet.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery +30))
 
-keybindNotSet = text.render('Invalid keybinds', True, (0,0,0))
+        self.volume = subText.render(f"{self.currentVolume}", True, (0,0,0))
 
-#volumeStuff
-volumeTxt = subText.render("Volume", True, (0,0,0))
+        self.scrollSpeedBoxRect = self.scrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx, self.settingsMenuRect.centery + 300))
+        self.UpScrollSpeedBoxRect = self.UpScrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx + 100, self.settingsMenuRect.centery + 300))
+        self.DownScrollSpeedBoxRect = self.DownScrollSpeedBox.get_rect(center = (self.settingsMenuRect.centerx - 100, self.settingsMenuRect.centery + 300))
 
-acceptableVolumeCharacters = ["0","1","2",'3','4','5','6','7','8','9']
+        self.currentScrollSpeed = round(self.currentScrollSpeed, 1)
+        self.scrollSpeed = subText.render(f"{self.currentScrollSpeed}", True, (0,0,0))
+        return all
 
-inputBox = pygame.Surface((50,50),pygame.SRCALPHA)
-inputBox.fill((124,124,124))
+    def ClickedSettings(self,mousepos):
+        global num1, num2
+        self.gTappingButton.clickDetect(mousepos, r=self.gTappingButton.updatePos(self.settingsMenuRect.x+300, self.settingsMenuRect.y+200)) #allows buttons to be clicked
+        self.scrollButton.clickDetect(mousepos, r=self.scrollButton.updatePos(self.settingsMenuRect.x+300, self.settingsMenuRect.y+300))
 
-volumeClicked = False
-count = 0
+        if self.volumeClicked:       #toggling volume clicked
+                self.volumeClicked = False
+                if self.currentVolume == '' or self.currentVolume == '-':
+                        self.currentVolume = 0
 
-currentVolume = 50
-
-
-
-done = True
-inputFirstNumber = True
-hundredFlag = False
-selected = None     #which keybind is selected
-keyClicked = False  #boolean to show if a keybind was clicked
-invalid = False     #check if keybind is repeated
-keybindNotSetFlag = False   #check for a keybind being '_'
-save = False                #save flag
-ghostTappingBool = False    #boolean for ghost tapping
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#DO NOT DELETE
-while True:
-
-    for i in buttonList:
-        i.updateColour()
-
-    #setting up the text
-    settingsTextRect = settingsText.get_rect(center=(settingsMenuRect.centerx,settingsMenuRect.centery - 300))
-
-    scrollTextRect = scrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 120))
-    upScrollTextRect = upScrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 80))
-    downScrollTextRect = downScrollText.get_rect(center = (settingsMenuRect.centerx-100,settingsMenuRect.centery - 80))
-    testtextrect = testtext.get_rect(center = (settingsMenuRect.centerx+150,settingsMenuRect.centery - 100))
-
-    gTappingRect = gTappingText.get_rect(center=(settingsMenuRect.centerx - 100, settingsMenuRect.centery-200))
-
-    keybindsTextRect = keybindsText.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery))
-
-    key1Rect = key1.get_rect(center = (settingsMenuRect.centerx - 150, settingsMenuRect.centery + 100))
-    key2Rect = key2.get_rect(center = (settingsMenuRect.centerx - 50, settingsMenuRect.centery + 100))
-    key3Rect = key3.get_rect(center = (settingsMenuRect.centerx + 50, settingsMenuRect.centery + 100))
-    key4Rect = key4.get_rect(center = (settingsMenuRect.centerx + 150, settingsMenuRect.centery + 100))
-
-    keysRect = [key1Rect, key2Rect, key3Rect, key4Rect]
-
-    keybinds = [key1Value, key2Value, key3Value, key4Value]
-
-    key1txt = text.render(key1Value, True, (0,0,0))
-    key2txt = text.render(key2Value, True, (0,0,0))
-    key3txt = text.render(key3Value, True, (0,0,0))
-    key4txt = text.render(key4Value, True, (0,0,0))
-
-    invalidtxt = text.render("Keybind in use", True, (0,0,0))
-    txtrect = invalidtxt.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery + 30))
-
-    boxRect = inputBox.get_rect(center = (settingsMenuRect.centerx + 100, settingsMenuRect.centery + 200))
-    keybindNotSetRect = keybindNotSet.get_rect(center = (settingsMenuRect.centerx, settingsMenuRect.centery +30))
-
-    volume = subText.render(f"{currentVolume}", True, (0,0,0))
-
-
-    mousepos = pygame.mouse.get_pos()
-    mouseX,mouseY = mousepos
-
-
-    #settings up keybind stuff
-    
-    #Setting up the disk
-    image = pygame.transform.scale_by(playButtonImage,imageSize)        #Image itself
-    rotatedImage = pygame.transform.rotate(image,rotation)              #Allowing image to be rotated
-    imageRect = rotatedImage.get_rect(center = (playPosX, playPosY))    #Getting position of the image
-
-    diskCenterX,diskCenterY = imageRect.center
-    radius = rotatedImage.get_width() / 2
-    distance = math.hypot(mouseX - diskCenterX, mouseY - diskCenterY)       #calculating the distance from the center of the disk to the mouse
-
-    
-    for event in pygame.event.get():    #Event system
-        if event.type == pygame.QUIT:   #If you leave the game, close the game
-            pygame.quit()
-            exit()
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:    #When you click, things below happen.
-            #ALL CLICK DETECTION WILL GO HERE
-            #-------------------------------------------------------------------------------
-            if animEnd == True:         #If the animation has played, the disk is clickable
-                if sClicked and not settingsMenuRect.collidepoint(mousepos):    #If settings is open and user clicked away from it
-                    if not keybindNotSetFlag:       #Initiates the settings save and closes settings menu if if the keybinds are set properly
-                        save = True
-                    sClicked = False        #Close settings
-                if distance <= radius and not sMenuOpen:      #if the mouse is over the disk and when the settings menu is not open
-                    imageSize = 1.7
-                    if clicked == True:
-                        clicked = False
-                    else:
-                        clicked = True
-                elif settingsTabRect.collidepoint(mousepos) and clicked:    #opening the menu
-                    if sMenuOpen:
-                        sClicked = False
-                    else:
-                        sClicked = True
-                gTappingButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)) #allows buttons to be clicked
-                scrollButton.clickDetect(mousepos, r=i.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300))
-
-                if volumeClicked:       #toggling volume clicked
-                    volumeClicked = False
-                    if currentVolume == '' or currentVolume == '-':
-                        currentVolume = 0
-
-                if boxRect.collidepoint(mousepos):
-                    volumeClicked = True
-                    done = False
-                    inputFirstNumber = False
-                    hundredFlag = False
+        if self.boxRect.collidepoint(mousepos):
+                    self.volumeClicked = True
+                    self.done = False
+                    self.inputFirstNumber = False
+                    self.hundredFlag = False
 
                     num1 = 0
                     num2 = 0
-                    num3 = 0
+
+        if self.DownScrollSpeedBoxRect.collidepoint(mousepos):
+                    self.currentScrollSpeed -= 0.1
+        elif self.UpScrollSpeedBoxRect.collidepoint(mousepos):
+                    self.currentScrollSpeed += 0.1
 
 
             #Check if a keybind has been clicked to change
-            if key1Rect.collidepoint(mousepos):
-                selected = key1
-                keyClicked = True
-                key1Value = '_'
-            elif key2Rect.collidepoint(mousepos):
-                selected = key2
-                keyClicked = True
-                key2Value = '_'
-            elif key3Rect.collidepoint(mousepos):
-                selected = key3
-                keyClicked = True
-                key3Value = '_'
-            elif key4Rect.collidepoint(mousepos):
-                selected = key4
-                keyClicked = True
-                key4Value = '_'
-            else:
-                keyClicked = False
-
-        if event.type == pygame.KEYDOWN and keyClicked == True: #if the user is changing a keybind
-            keyPressed = pygame.key.name(event.key).upper()
-            if keyPressed in keybinds:  #if the new keybind is already a keybind then dont allow
-                invalid = True
+        if self.key1Rect.collidepoint(mousepos):
+                self.selected = self.key1
+                self.keyClicked = True
+                self.key1Value = '_'
+        elif self.key2Rect.collidepoint(mousepos):
+                self.selected = self.key2
+                self.keyClicked = True
+                self.key2Value = '_'
+        elif self.key3Rect.collidepoint(mousepos):
+                self.selected = self.key3
+                self.keyClicked = True
+                self.key3Value = '_'
+        elif self.key4Rect.collidepoint(mousepos):
+                self.selected = self.key4
+                self.keyClicked = True
+                self.key4Value = '_'
+        else:
+                self.keyClicked = False
+        return all
+        
+    def eventKeybinds(self, keyPressed):
+            # keyPressed = pygame.key.name(event.key).upper()
+            if keyPressed in self.keybinds:  #if the new keybind is already a keybind then dont allow
+                self.invalid = True
             else:                       #otherwise allow new keybind
-                if selected == key1:
-                    key1Value = keyPressed
-                elif selected == key2:
-                    key2Value = keyPressed
-                elif selected == key3:
-                    key3Value = keyPressed
-                elif selected == key4:
-                    key4Value = keyPressed
-                keyClicked = False
-                invalid = False
-
-        if event.type == pygame.KEYDOWN and volumeClicked:
-            keyPressed = pygame.key.name(event.key).upper()
-            if keyPressed in acceptableVolumeCharacters or keyPressed == "RETURN":
-                if currentVolume == 10 and keyPressed == '0':
-                    currentVolume = 100
-                    done = True
-                    save = True
-                    volumeClicked = False
-                    hundredFlag = True
+                if self.selected == self.key1:
+                    self.key1Value = keyPressed
+                elif self.selected == self.key2:
+                    self.key2Value = keyPressed
+                elif self.selected == self.key3:
+                    self.key3Value = keyPressed
+                elif self.selected == self.key4:
+                    self.key4Value = keyPressed
+                self.keyClicked = False
+                self.invalid = False
+            return all
+                
+    def eventVolume(self, keyPressed):
+            global num1, num2
+            #keyPressed = pygame.key.name(event.key).upper()
+            if keyPressed in self.acceptableVolumeCharacters or keyPressed == "RETURN":
+                if self.currentVolume == 10 and keyPressed == '0':
+                    self.currentVolume = 100
+                    self.done = True
+                    self.save = True
+                    self.volumeClicked = False
+                    self.hundredFlag = True
                 elif keyPressed == "RETURN":
-                    done = True
-                    save = True
-                    volumeClicked = False
-                elif inputFirstNumber and keyPressed in acceptableVolumeCharacters:
+                    self.done = True
+                    self.save = True
+                    self.volumeClicked = False
+                elif self.inputFirstNumber and keyPressed in self.acceptableVolumeCharacters:
                     num2 = keyPressed
-                    currentVolume = int(num1) * 10 + int(num2)
+                    self.currentVolume = int(num1) * 10 + int(num2)
                 else:
                     num1 = keyPressed
-                    currentVolume = num1
-                    inputFirstNumber = True
-
-
-            #-------------------------------------------------------------------------------
-    screen.fill((0,0,0))
-
-    #Playing the animation
-    if animEnd == False:
-        screen.blit(rotatedImage, imageRect)
-        screen.blit(tint, tintRect)
-        tint.set_alpha(opacity)
-        startAnim()
-    #this heiarchy makes sure that the tint is always over the disk image and that the animation doesn't break.
+                    self.currentVolume = num1
+                    self.inputFirstNumber = True
+            return all
     
-    #AFTER THE ANIMATION PLAYED
-    else:
-        openSettings()
-        screen.blit(background, backgroundRect)
-        settingsTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
-        settingsTabRect =settingsTab.get_rect(topleft = (sPosX, sPosY))
-        text_settings_rect = text_settings.get_rect(center = settingsTabRect.center)
+    def settingsTabClicked(self,mousepos):
+        print(self.sMenuOpen)
+        if self.sClicked and not self.settingsMenuRect.collidepoint(mousepos):    #If settings is open and user clicked away from it
+            if not self.keybindNotSetFlag:       #Initiates the settings save and closes settings menu if if the keybinds are set properly
+                self.save = True
+                self.sClicked = False        #Close settings
 
-        playTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
-        playTabRect = playTab.get_rect(topleft = (pPosX, pPosY))
-        text_play_rect = text_play.get_rect(center = playTabRect.center)
-
-        chartTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
-        chartTabRect = chartTab.get_rect(topleft = (sPosX, cPosY))
-        text_chart_rect = text_play.get_rect(center = chartTabRect.center)
-
-        rotation += 1       #Spins the disk counter-clockwise
-        opacity -= 10
-        if rotation >=360:  #Just keeping the rotation variable between 0 and 360
-            rotation = 0
-        if opacity <= 0:
-            opacity = 0
-
-        #--------------------------------------------------------------------------------------------------
-        #--------------------------------------------------------------------------------------------------
-        #--------------------------------------------------------------------------------------------------
-
-        pygame.draw.rect(screen, (184, 52, 224), settingsTabRect, border_radius=100)
-        pygame.draw.rect(screen, (0,204,0),playTabRect, border_radius=100)
-        pygame.draw.rect(screen, (247, 114, 45),chartTabRect, border_radius=100)
-        screen.blit(text_settings,text_settings_rect)
-        screen.blit(text_play, text_play_rect)
-        screen.blit(text_chart, text_chart_rect)
-        screen.blit(rotatedImage, imageRect)
-        screen.blit(settingsMenu,settingsMenuRect)
-        screen.blit(settingsText,settingsTextRect)
-        screen.blit(gTappingText,gTappingRect)
-        screen.blit(scrollText,scrollTextRect)
-        if clicked:
-            if sPosX > 500:     
-                sPosX -= 5
-            if pPosX > 550:
-                pPosX -= 5
-            if imageSize < 1.4:
-                imageSize = 1.4
-            if tWidth < 600:
-                tWidth += (math.sqrt(600 - tWidth)) * 1.3
-            if playPosX > 450:
-                playPosX -= (math.sqrt(playPosX - 450))
-                imageSize -= 0.01
-            else:
-                playPosX = 450
-                imageSize = 1.4
-
+    def sClickedSetting(self):
+        print(self.sMenuOpen)
+        if self.sMenuOpen:
+            self.sClicked = False
         else:
-            if sPosX < 600:
-                sPosX += 5
-            if pPosX < 650:
-                pPosX += 5
-            if imageSize < 1:
-                imageSize = 1
-            if tWidth > 180:
-                tWidth -= (math.sqrt(tWidth - 180)) * 1.5
-            if playPosX < 700:
-                playPosX += (math.sqrt(700- playPosX))
-                imageSize -= 0.017
-            else:
-                screen.blit(rotatedImage, imageRect)
-                playPosX = 700
-                imageSize = 1.2
+            self.sClicked = True
 
-        #--------------------------------------------------------------------------------------------------
-        #--------------------------------------------------------------------------------------------------
-        #--------------------------------------------------------------------------------------------------
-        #DO NOT DELETE
-        if scrollButton.updateColour() == "green":
-            screen.blit(downScrollText,downScrollTextRect)
-        elif scrollButton.updateColour() == "red":
-            screen.blit(upScrollText,upScrollTextRect)
 
-        gTappingButton.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+200)
-        scrollButton.updatePos(settingsMenuRect.x+300, settingsMenuRect.y+300)
-        screen.blit(testtext,testtextrect)
+    def mainLoop1(self):
+        self.openSettings()
+        screen.blit(self.settingsMenu,self.settingsMenuRect)
+        screen.blit(self.settingsText,self.settingsTextRect)
+        screen.blit(self.gTappingText,self.gTappingRect)
+        screen.blit(self.scrollText,self.scrollTextRect)
+        return all
 
-        screen.blit(tint, tintRect)
-        tint.set_alpha(opacity)
+    def mainLoop2(self):
+        global screen
 
-        if invalid and not keybindNotSetFlag:
-            screen.blit(invalidtxt, txtrect)
-        if keybindNotSetFlag:
-            screen.blit(keybindNotSet,keybindNotSetRect)
+        self.openSettings()
+        screen.blit(self.settingsMenu,self.settingsMenuRect)
+        screen.blit(self.settingsText,self.settingsTextRect)
+        screen.blit(self.gTappingText,self.gTappingRect)
+        screen.blit(self.scrollText,self.scrollTextRect)
+
+        if self.scrollButton.updateColour() == "green":
+            screen.blit(self.downScrollText,self.downScrollTextRect)
+        elif self.scrollButton.updateColour() == "red":
+            screen.blit(self.upScrollText,self.upScrollTextRect)
+
+        self.gTappingButton.updatePos(self.settingsMenuRect.x+300, self.settingsMenuRect.y+200)
+        self.scrollButton.updatePos(self.settingsMenuRect.x+300, self.settingsMenuRect.y+300)
+        screen.blit(self.testtext,self.testtextrect)
+
+        if self.invalid and not self.keybindNotSetFlag:
+            screen.blit(self.invalidtxt, self.txtrect)
+        if self.keybindNotSetFlag:
+            screen.blit(self.keybindNotSet,self.keybindNotSetRect)
 
         for i in range(0, 4):
-            if selected == keys[i] and keybinds[i] == '_' and keyClicked:
-                keys[i].fill((100,100,100))
+            if self.selected == self.keys[i] and self.keybinds[i] == '_' and self.keyClicked:
+                self.keys[i].fill((100,100,100))
             else:
-                keys[i].fill((200,200,200))
+                self.keys[i].fill((200,200,200))
 
-        if not done and not inputFirstNumber and volumeClicked:
-            count += 1
-            if count > 60:
-                count = 0
-            if count > 30:
-                currentVolume = "-"
+        if not self.done and not self.inputFirstNumber and self.volumeClicked:
+            self.count += 1
+            if self.count > 60:
+                self.count = 0
+            if self.count > 30:
+                self.currentVolume = "-"
             else:
-                currentVolume = ""
+                self.currentVolume = ""
 
-        
+        self.updateDatabase()
 
+        screen.blit(self.keybindsText, self.keybindsTextRect)
+        screen.blit(self.key1, self.key1Rect)
+        screen.blit(self.key2, self.key2Rect)
+        screen.blit(self.key3, self.key3Rect)
+        screen.blit(self.key4, self.key4Rect)
+        screen.blit(self.key1txt, (self.key1Rect.centerx - 15, self.key1Rect.centery - 20))
+        screen.blit(self.key2txt, (self.key2Rect.centerx - 15, self.key2Rect.centery - 20))
+        screen.blit(self.key3txt, (self.key3Rect.centerx - 15, self.key3Rect.centery - 20))
+        screen.blit(self.key4txt, (self.key4Rect.centerx - 15, self.key4Rect.centery - 20))
 
-        if save:
-            cur.execute('REPLACE INTO keybinds (id, key1, key2, key3, key4, ghost, volume) VALUES (1,?,?,?,?,?,?)', 
-                        (key1Value, key2Value, key3Value, key4Value, ghostTappingBool,currentVolume))
-            database.commit()
-            save = False
-            print('saving')
+        screen.blit(self.scrollSpeedBox,self.scrollSpeedBoxRect)
+        screen.blit(self.scrollSpeed,(self.scrollSpeedBoxRect.centerx-22, self.scrollSpeedBoxRect.centery-10))
+        screen.blit(self.UpScrollSpeedBox, self.UpScrollSpeedBoxRect)
+        screen.blit(self.IncreaseSpeedText, (self.UpScrollSpeedBoxRect.centerx-25, self.UpScrollSpeedBoxRect.centery-10))
+        screen.blit(self.DownScrollSpeedBox, self.DownScrollSpeedBoxRect)
+        screen.blit(self.DecreaseSpeedText, (self.DownScrollSpeedBoxRect.centerx-25, self.DownScrollSpeedBoxRect.centery-10))
 
-        screen.blit(keybindsText, keybindsTextRect)
-        screen.blit(key1, key1Rect)
-        screen.blit(key2, key2Rect)
-        screen.blit(key3, key3Rect)
-        screen.blit(key4, key4Rect)
-        screen.blit(key1txt, (key1Rect.centerx - 15, key1Rect.centery - 20))
-        screen.blit(key2txt, (key2Rect.centerx - 15, key2Rect.centery - 20))
-        screen.blit(key3txt, (key3Rect.centerx - 15, key3Rect.centery - 20))
-        screen.blit(key4txt, (key4Rect.centerx - 15, key4Rect.centery - 20))
-
-        screen.blit(inputBox,boxRect)
-        screen.blit(volumeTxt,(boxRect.centerx-150, boxRect.centery-15))
-        if hundredFlag:
-            screen.blit(volume,(boxRect.centerx-25, boxRect.centery-10))
+        screen.blit(self.inputBox,self.boxRect)
+        screen.blit(self.volumeTxt,(self.boxRect.centerx-150, self.boxRect.centery-15))
+        if self.hundredFlag:
+            screen.blit(self.volume,(self.boxRect.centerx-25, self.boxRect.centery-10))
         else:
-            screen.blit(volume,(boxRect.centerx-15, boxRect.centery-10))
+            screen.blit(self.volume,(self.boxRect.centerx-15, self.boxRect.centery-10))
+
+        return all
 
 
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------
-
-
-    pygame.display.flip()
-    clock.tick(60)
+    def updateDatabase(self):
+        global ghostTappingBool
+        if self.save:
+            self.cur.execute('REPLACE INTO settings (id, key1, key2, key3, key4, ghost, volume,notespeed) VALUES (1,?,?,?,?,?,?,?)', 
+                        (self.key1Value, self.key2Value, self.key3Value, self.key4Value, ghostTappingBool,self.currentVolume,self.currentScrollSpeed))
+            self.database.commit()
+            self.save = False
+        return all
