@@ -32,3 +32,6 @@ Added changeable keybinds to the game, allowing the user to customise them to wh
 
 16-12-2025
 Added volume button to customise your volume setting (so far doesn't do anything other than update the database)
+
+13-01-2026
+Added scroll speed changes. Finally synced files together, turning SettingsTab into functions and linking it to the Main program. Now to run the game, just run the Main.py file.
