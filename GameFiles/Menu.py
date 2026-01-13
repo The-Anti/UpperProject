@@ -55,6 +55,9 @@ tintRect = tint.get_rect(center=(W/2,H/2))
 
 tintScreen = False
 
+
+Settings = settingsTab.settings()
+
 #Background
 #------------------------------------------------------------------------------------------------------
 background = pygame.image.load('Background.jpg').convert_alpha()
@@ -125,10 +128,12 @@ pPosX = 625
 pPosY = 360
 
 cPosY = 460
+
+
 #------------------------------------------------------------------------------------------------------
 clicked = False
-
 while True:
+    Settings.loopedSettings()
     mousepos = pygame.mouse.get_pos()
     mouseX,mouseY = mousepos
 
@@ -149,14 +154,28 @@ while True:
             #ALL CLICK DETECTION WILL GO HERE
             #-------------------------------------------------------------------------------
             if animEnd == True:         #If the animation has played, the disk is clickable
-                if distance <= radius:      #if the mouse is over the disk
+                Settings.settingsTabClicked(mousepos)
+                if distance <= radius and not Settings.sMenuOpen:      #if the mouse is over the disk and when the settings menu is not open
                     imageSize = 1.7
                     if clicked == True:
                         clicked = False
                     else:
                         clicked = True
-                elif settingsTabRect.collidepoint(mousepos) and clicked:
-                    sClicked = True
+                elif settingsTabRect.collidepoint(mousepos) and clicked:    #opening the menu
+                    Settings.sClickedSetting()
+                Settings.ClickedSettings(mousepos)
+                
+        if event.type == pygame.KEYDOWN and Settings.keyClicked == True: #if the user is changing a keybind
+            keyPressed = pygame.key.name(event.key).upper()
+
+            Settings.eventKeybinds(keyPressed)
+        
+        if event.type == pygame.KEYDOWN and Settings.volumeClicked:
+            keyPressed = pygame.key.name(event.key).upper()
+
+            Settings.eventVolume(keyPressed)
+                            
+
                     
     screen.fill((0,0,0))
 
@@ -175,6 +194,7 @@ while True:
     
     #AFTER THE ANIMATION PLAYED
     else:
+        Settings.mainLoop1()
         settingsTab = pygame.Surface((tWidth,tHeight),pygame.SRCALPHA)
         settingsTabRect =settingsTab.get_rect(topleft = (sPosX, sPosY))
         text_settings_rect = text_settings.get_rect(center = settingsTabRect.center)
@@ -238,5 +258,9 @@ while True:
                 imageSize = 1.2
         screen.blit(tint, tintRect)
         tint.set_alpha(opacity)
+        Settings.mainLoop2()
+
     pygame.display.flip()
     clock.tick(60)
+
+    
