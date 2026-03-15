@@ -35,3 +35,6 @@ Added volume button to customise your volume setting (so far doesn't do anything
 
 13-01-2026
 Added scroll speed changes. Finally synced files together, turning SettingsTab into functions and linking it to the Main program. Now to run the game, just run the Main.py file.
+
+15-03-2026
+Wow I am horrible at consistency. I finally made the game somewhat functional! In RhythmGame.py, two tap notes fall down the screen along with two hold notes. Users can only tap the tap notes and only hold the hold notes. There is a judgement system along with a combo and score. Next update will be linking this to the main game so that the test song is actually playable. (This is the end of my assessment and anything going forward will purely be hobby work)
